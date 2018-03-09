@@ -1,2 +1,2 @@
 # APFELthroughLHAPDF
-Repository for the interface between APFE++ and LHAPDF
+Repository for the interface between APFEL++ and LHAPDF
