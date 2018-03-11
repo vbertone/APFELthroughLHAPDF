@@ -124,17 +124,20 @@ int main()
   // Feed it to the initialisation class of APFEL++
   apfel::InitialiseEvolution ev{es};
 
-  // Construct pointer to LHAPDF::PDF object.
+  // Construct pointer to LHAPDF::PDF object
   LHAPDF::PDF* distAP = mkPDF(ev);
 
-  // Print results
+  // Print test results
   std::cout << std::scientific;
+  std::cout.precision(4);
 
   const double mu     = 100;
   const double xlha[] = {1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 7e-1, 9e-1};
 
-  std::cout << "\nAlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
-  std::cout << "\n   x    "
+  std::cout << "\nmu = " << mu << " GeV" << std::endl;
+  std::cout << "\nAPFEL++ evolution:" << std::endl;
+  std::cout << "AlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
+  std::cout << "   x    "
        << "   u-ubar   "
        << "   d-dbar   "
        << " 2(ubr+dbr) "
@@ -159,10 +162,10 @@ int main()
 	PDFmap.at(21)
 	   << std::endl;
     }
-  std::cout << "\n";
 
-  std::cout << "\nAlphaQCD(Q) = " << distLH->alphasQ(mu) << std::endl;
-  std::cout << "\n   x    "
+  std::cout << "\nLHAPDF (tabulated) evolution:" << std::endl;
+  std::cout << "AlphaQCD(Q) = " << distLH->alphasQ(mu) << std::endl;
+  std::cout << "   x    "
        << "   u-ubar   "
        << "   d-dbar   "
        << " 2(ubr+dbr) "
