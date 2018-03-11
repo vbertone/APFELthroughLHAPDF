@@ -48,7 +48,8 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
       // Fill in the Q2 grid for alphas using the first element of the
       // map. Remove the last element but do not do it for the last
       // subgrid (this is why pop_back appears before).
-      q2as.pop_back();
+      if (!q2as.empty())
+	q2as.pop_back();
       q2as.insert(q2as.end(), sg.second.begin()->second.q2s.begin(), sg.second.begin()->second.q2s.end());
 
       // Fill in the flavour ID vector
@@ -91,8 +92,8 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
 int main()
 {
   //const std::string set = "MMHT2014nnlo68cl";
-  //const std::string set = "NNPDF30_nnlo_as_0118";
-  const std::string set = "CT14nnlo";
+  const std::string set = "NNPDF30_nlo_as_0118";
+  //const std::string set = "CT14nnlo";
 
   // Open LHAPDF set
   LHAPDF::PDF* distLH = LHAPDF::mkPDF(set);
