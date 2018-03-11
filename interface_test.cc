@@ -91,8 +91,8 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
 
 int main()
 {
-  //const std::string set = "MMHT2014nnlo68cl";
-  const std::string set = "NNPDF30_nlo_as_0118";
+  const std::string set = "MMHT2014nnlo68cl";
+  //const std::string set = "NNPDF30_nlo_as_0118";
   //const std::string set = "CT14nnlo";
 
   // Open LHAPDF set
