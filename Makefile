@@ -1,5 +1,5 @@
 
-CXX = clang++
+#CXX = clang++
 
 CXXFLAGS += -O3 -fPIC -std=c++11
 #CXXFLAGS += -O3 -g -fPIC -fsanitize=address -std=c++11
