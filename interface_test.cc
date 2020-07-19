@@ -106,7 +106,6 @@ int main()
       }
 
   // Adjust evolution parameters to match those of the input set
-  es.name              = "APFELxx_PDFs";
   es.Q0                = distLH->qMin();
   es.Qmin              = distLH->qMin();
   es.Qmax              = distLH->qMax();
@@ -118,7 +117,7 @@ int main()
   es.InSet             = [=] (double const& x, double const& Q) -> std::map<int,double> { return apfel::PhysToQCDEv(distLH->xfxQ(x, Q)); };
 
   // Feed it to the initialisation class of APFEL++
-  apfel::InitialiseEvolution ev{es, true};
+  apfel::InitialiseEvolution ev{es};
 
   // Construct pointer to LHAPDF::PDF object
   LHAPDF::PDF* distAP = mkPDF(ev);
