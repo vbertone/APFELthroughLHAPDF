@@ -114,7 +114,7 @@ int main()
   es.AlphaQCDRef       = distLH->alphasQ(es.QQCDRef);
   es.Thresholds        = ths;
   es.Masses            = mss;
-  es.InSet             = [=] (double const& x, double const& Q) -> std::map<int,double> { return apfel::PhysToQCDEv(distLH->xfxQ(x, Q)); };
+  es.InSet             = {[=] (double const& x, double const& Q) -> std::map<int,double> { return apfel::PhysToQCDEv(distLH->xfxQ(x, Q)); }};
 
   // Feed it to the initialisation class of APFEL++
   apfel::InitialiseEvolution ev{es};
