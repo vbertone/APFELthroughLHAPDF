@@ -4,14 +4,7 @@
 // Authors: Valerio Bertone: valerio.bertone@cern.ch
 //
 
-#include <cmath>
-#include <iostream>
-
-#include <apfel/timer.h>
-#include <apfel/evolutionsetup.h>
-#include <apfel/initialiseevolution.h>
-#include <apfel/rotations.h>
-
+#include <apfel/apfelxx.h>
 #include <LHAPDF/LHAPDF.h>
 #include <LHAPDF/GridPDF.h>
 
@@ -91,7 +84,7 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
 int main()
 {
   // Open LHAPDF set
-  LHAPDF::PDF* distLH = LHAPDF::mkPDF("CT14nnlo");
+  LHAPDF::PDF* distLH = LHAPDF::mkPDF("CT18NNLO");
 
   // APFEL++ default EvolutionSetup object
   apfel::EvolutionSetup es{};
@@ -116,74 +109,95 @@ int main()
   es.Masses            = mss;
   es.InSet             = {[=] (double const& x, double const& Q) -> std::map<int,double> { return apfel::PhysToQCDEv(distLH->xfxQ(x, Q)); }};
 
-  // Feed it to the initialisation class of APFEL++
-  apfel::InitialiseEvolution ev{es};
+  // Feed it to the initialisation class of APFEL++ and construct
+  // pointer to LHAPDF::PDF object
+  LHAPDF::PDF* distAP = mkPDF(apfel::InitialiseEvolution{es});
 
-  // Construct pointer to LHAPDF::PDF object
-  LHAPDF::PDF* distAP = mkPDF(ev);
+    // Initialize APFEL++
+  const apfel::Grid g{{{100, 1e-5, 3}, {100, 1e-1, 3}, {100, 6e-1, 3}, {80, 8.5e-1, 5}}};
+  apfel::AlphaQCD a{es.AlphaQCDRef, es.QQCDRef, es.Thresholds, es.PerturbativeOrder};
+  const apfel::TabulateObject<double> Alphas{a, 100, 1, 1000, 3};
+  const auto as = [&] (double const& mu) -> double{ return Alphas.Evaluate(mu); };
+  const auto EvolvedPDFs = apfel::BuildDglap(apfel::InitializeDglapObjectsQCD(g, es.Thresholds),
+					     [&] (double const& x, double const& Q) -> std::map<int, double>{ return apfel::PhysToQCDEv(distLH->xfxQ(x, Q)); },
+					     es.Q0, es.PerturbativeOrder, as);
+  const apfel::TabulateObject<apfel::Set<apfel::Distribution>> TabulatedPDFs{*EvolvedPDFs, 50, 1, 1000, 3};
 
   // Print test results
   std::cout << std::scientific;
   std::cout.precision(4);
 
-  const double mu     = 100;
-  const double xlha[] = {1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 7e-1, 9e-1};
+  const double mu = 100;
+  const std::vector<double> xlha{1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 3e-1, 5e-1, 7e-1, 9e-1};
 
   std::cout << "\nmu = " << mu << " GeV" << std::endl;
-  std::cout << "\nAPFEL++ evolution:" << std::endl;
-  std::cout << "AlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
-  std::cout << "   x    "
-       << "   u-ubar   "
-       << "   d-dbar   "
-       << " 2(ubr+dbr) "
-       << "   c+cbar   "
-       << "    gluon   "
-       << std::endl;
-  for (auto const& x : xlha)
-    {
-      const std::map<int, double> PDFmap = distAP->xfxQ(x, mu);
-      std::cout.precision(1);
-      std::cout << x;
-      std::cout.precision(4);
-      std::cout << "  " <<
-	PDFmap.at(2) - PDFmap.at(-2)
-	   << "  " <<
-	PDFmap.at(1) - PDFmap.at(-1)
-	   << "  " <<
-	2 * ( PDFmap.at(-2) + PDFmap.at(-1) )
-	   << "  " <<
-	PDFmap.at(4) + PDFmap.at(-4)
-	   << "  " <<
-	PDFmap.at(21)
-	   << std::endl;
-    }
 
   std::cout << "\nLHAPDF (tabulated) evolution:" << std::endl;
   std::cout << "AlphaQCD(Q) = " << distLH->alphasQ(mu) << std::endl;
   std::cout << "   x    "
-       << "   u-ubar   "
-       << "   d-dbar   "
-       << " 2(ubr+dbr) "
-       << "   c+cbar   "
-       << "    gluon   "
-       << std::endl;
+	    << "   u-ubar   "
+	    << "   d-dbar   "
+	    << " 2(ubr+dbr) "
+	    << "   c+cbar   "
+	    << "    gluon   "
+	    << std::endl;
   for (auto const& x : xlha)
     {
       const std::map<int, double> PDFmap = distLH->xfxQ(x, mu);
       std::cout.precision(1);
       std::cout << x;
       std::cout.precision(4);
-      std::cout << "  " <<
-	PDFmap.at(2) - PDFmap.at(-2)
-	   << "  " <<
-	PDFmap.at(1) - PDFmap.at(-1)
-	   << "  " <<
-	2 * ( PDFmap.at(-2) + PDFmap.at(-1) )
-	   << "  " <<
-	PDFmap.at(4) + PDFmap.at(-4)
-	   << "  " <<
-	PDFmap.at(21)
-	   << std::endl;
+      std::cout << "  " << PDFmap.at(2) - PDFmap.at(-2)
+		<< "  " << PDFmap.at(1) - PDFmap.at(-1)
+		<< "  " << 2 * ( PDFmap.at(-2) + PDFmap.at(-1) )
+		<< "  " << PDFmap.at(4) + PDFmap.at(-4)
+		<< "  " << PDFmap.at(21)
+		<< std::endl;
+    }
+  std::cout << "\nAPFEL++ evolution through LHAPDF:" << std::endl;
+  std::cout << "AlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
+  std::cout << "   x    "
+	    << "   u-ubar   "
+	    << "   d-dbar   "
+	    << " 2(ubr+dbr) "
+	    << "   c+cbar   "
+	    << "    gluon   "
+	    << std::endl;
+  for (auto const& x : xlha)
+    {
+      const std::map<int, double> PDFmap = distAP->xfxQ(x, mu);
+      std::cout.precision(1);
+      std::cout << x;
+      std::cout.precision(4);
+      std::cout << "  " << PDFmap.at(2) - PDFmap.at(-2)
+		<< "  " << PDFmap.at(1) - PDFmap.at(-1)
+		<< "  " << 2 * ( PDFmap.at(-2) + PDFmap.at(-1) )
+		<< "  " << PDFmap.at(4) + PDFmap.at(-4)
+		<< "  " << PDFmap.at(21)
+		<< std::endl;
+    }
+
+  std::cout << "\nAPFEL++ evolution stand alone:" << std::endl;
+  std::cout << "AlphaQCD(Q) = " << as(mu) << std::endl;
+  std::cout << "   x    "
+	    << "   u-ubar   "
+	    << "   d-dbar   "
+	    << " 2(ubr+dbr) "
+	    << "   c+cbar   "
+	    << "    gluon   "
+	    << std::endl;
+  const std::map<int, apfel::Distribution> tpdfs = apfel::QCDEvToPhys(TabulatedPDFs.Evaluate(mu).GetObjects());
+  for (auto const& x : xlha)
+    {
+      std::cout.precision(1);
+      std::cout << x;
+      std::cout.precision(4);
+      std::cout << "  " << tpdfs.at(2).Evaluate(x) - tpdfs.at(-2).Evaluate(x)
+		<< "  " << tpdfs.at(1).Evaluate(x) - tpdfs.at(-1).Evaluate(x)
+		<< "  " << 2 * ( tpdfs.at(-2).Evaluate(x) + tpdfs.at(-1).Evaluate(x) )
+		<< "  " << tpdfs.at(4).Evaluate(x) + tpdfs.at(-4).Evaluate(x)
+		<< "  " << tpdfs.at(0).Evaluate(x)
+		<< std::endl;
     }
   std::cout << "\n";
 }
