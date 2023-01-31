@@ -135,9 +135,10 @@ int main()
 
   // Feed it to the initialisation class of APFEL++ and construct
   // pointer to LHAPDF::PDF object
-  LHAPDF::PDF* distAP = mkPDF(apfel::InitialiseEvolution{es});
+  apfel::InitialiseEvolution ev{es};
+  LHAPDF::PDF* distAP = mkPDF(ev);
 
-    // Initialize APFEL++
+  // Initialize APFEL++
   const apfel::Grid g{{{100, 1e-5, 3}, {100, 1e-1, 3}, {100, 6e-1, 3}, {80, 8.5e-1, 5}}};
   apfel::AlphaQCD a{es.AlphaQCDRef, es.QQCDRef, es.Thresholds, es.PerturbativeOrder};
   const apfel::TabulateObject<double> Alphas{a, 100, 1, 1000, 3};
@@ -178,6 +179,7 @@ int main()
 		<< "  " << PDFmap.at(21)
 		<< std::endl;
     }
+
   std::cout << "\nAPFEL++ evolution through LHAPDF:" << std::endl;
   std::cout << "AlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
   std::cout << "   x    "
@@ -198,6 +200,30 @@ int main()
 		<< "  " << 2 * ( PDFmap.at(-2) + PDFmap.at(-1) )
 		<< "  " << PDFmap.at(4) + PDFmap.at(-4)
 		<< "  " << PDFmap.at(21)
+		<< std::endl;
+    }
+
+  std::cout << "\nAPFEL++ evolution through InitializeEvolution:" << std::endl;
+  std::cout << "AlphaQCD(Q) = " << distAP->alphasQ(mu) << std::endl;
+  std::cout << "   x    "
+	    << "   u-ubar   "
+	    << "   d-dbar   "
+	    << " 2(ubr+dbr) "
+	    << "   c+cbar   "
+	    << "    gluon   "
+	    << std::endl;
+  const std::map<int, apfel::Distribution> td = apfel::QCDEvToPhys(ev.TabulatedDistributions().Evaluate(mu).GetObjects());
+  for (auto const& x : xlha)
+    {
+
+      std::cout.precision(1);
+      std::cout << x;
+      std::cout.precision(4);
+      std::cout << "  " << td.at(2).Evaluate(x) - td.at(-2).Evaluate(x)
+		<< "  " << td.at(1).Evaluate(x) - td.at(-1).Evaluate(x)
+		<< "  " << 2 * ( td.at(-2).Evaluate(x) + td.at(-1).Evaluate(x) )
+		<< "  " << td.at(4).Evaluate(x) + td.at(-4).Evaluate(x)
+		<< "  " << td.at(0).Evaluate(x)
 		<< std::endl;
     }
 
