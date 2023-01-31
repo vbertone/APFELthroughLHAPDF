@@ -8,8 +8,8 @@
 #include <LHAPDF/LHAPDF.h>
 #include <LHAPDF/GridPDF.h>
 
-// Function that construct an LHAPDF::GridPDF object using an
-// apfel::InitialiseEvolution object as an input in the place of a
+// Function that constructs a pointer to an LHAPDF::PDF object using
+// an apfel::InitialiseEvolution object as an input in the place of a
 // standard LHAPDF grid.
 LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
 {
@@ -36,7 +36,7 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
 	  data.setPids().push_back((id.first == 0 ? 21 : id.first));
     }
 
-  // Fill the knots of Knotarray
+  // Set up the knots of the Knotarray
   data.setShape() = std::vector<size_t>{data.xs().size(), data.q2s().size(), data.setPids().size()};
   data.fillLogKnots();
   data.initPidLookup();
@@ -78,6 +78,11 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
   for (auto const& q2 : data.q2s())
     als.push_back(ev.Alphas(sqrt(q2)));
 
+  // Construct alpha_s object
+  LHAPDF::AlphaS_Ipol* as = new LHAPDF::AlphaS_Ipol{};
+  as->setQ2Values(data.q2s());
+  as->setAlphaSValues(als);
+
   // Define an LHAPDF GridPDF object
   LHAPDF::GridPDF* dist = new LHAPDF::GridPDF{};
 
@@ -94,11 +99,9 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
   dist->setFlavors(data.setPids());
 
   // Set alpha_s
-  LHAPDF::AlphaS_Ipol* as = new LHAPDF::AlphaS_Ipol{};
-  as->setQ2Values(data.q2s());
-  as->setAlphaSValues(als);
   dist->setAlphaS(as);
-  
+
+  // Return object
   return dist;
 }
 
@@ -124,7 +127,7 @@ int main()
   es.Qmin              = distLH->qMin();
   es.Qmax              = distLH->qMax();
   es.PerturbativeOrder = distLH->orderQCD();
-  es.QQCDRef           = 91.1876;
+  es.QQCDRef           = apfel::ZMass;
   es.AlphaQCDRef       = distLH->alphasQ(es.QQCDRef);
   es.Thresholds        = ths;
   es.Masses            = mss;
