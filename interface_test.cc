@@ -5,6 +5,7 @@
 //
 
 #include <apfel/apfelxx.h>
+/*
 #include <LHAPDF/LHAPDF.h>
 #include <LHAPDF/GridPDF.h>
 
@@ -104,7 +105,7 @@ LHAPDF::PDF* mkPDF(apfel::InitialiseEvolution const& ev)
   // Return object
   return dist;
 }
-
+*/
 int main()
 {
   // Open LHAPDF set
