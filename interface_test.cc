@@ -5,8 +5,9 @@
 //
 
 #include <apfel/apfelxx.h>
-/*
+#include <apfel/mkpdf.h>
 #include <LHAPDF/LHAPDF.h>
+/*
 #include <LHAPDF/GridPDF.h>
 
 // Function that constructs a pointer to an LHAPDF::PDF object using
